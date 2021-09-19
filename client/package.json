@@ -1,0 +1,19 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "description": "client app for medium article",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/santoshbalaji/medium-app.git"
+  },
+  "author": "santosh balaji",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/santoshbalaji/medium-app/issues"
+  },
+  "homepage": "https://github.com/santoshbalaji/medium-app#readme"
+}
