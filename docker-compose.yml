@@ -1,26 +1,36 @@
 version: '3.6'
 services:
 
+  # For Mongodb database container
   database:
     container_name: medium_database
     image: mongo
+    # Internal docker port 27017 of container mapped to local port 27017
     ports:
       - "27017:27017"
-
+  
+  # For redis cache container
   cache:
     container_name: medium_cache
     image: redis
+    # Internal docker port 6379 of container mapped to local port 6379
     ports:
       - "6379:6379"
   
+  # Two same nodejs docker instances created for load balancers 
+  # For Nodejs backend server container
   backend_server_1:
     container_name: medium_backend_server_1
     image: node
     working_dir: /home/node/app
+    # Mounting the backend code base to docker internal folder 
     volumes:
       - ./backend:/home/node/app
+    # Internal docker port 3000 of container mapped to local port 3001
     ports:
       - "3001:3000"
+    # This container depends on database and cache container
+    # The container will be started once these dependency containers are up
     depends_on: 
       - database
       - cache
@@ -28,19 +38,27 @@ services:
       - REDIS_HOST=redis://cache:6379
       - SWAGGER_PORT=3001
       - TZ=Asia/Singapore
+    # Links are to be created since we need to connect to database and cache containers. 
+    # The host uri will be using names provided in the links
     links:
       - cache:cache
       - database:database
+    # command to start the nodejs application
     command: sh -c "npm install && npm run start"
   
+  # For Nodejs backend server container
   backend_server_2:
     container_name: medium_backend_server_2
     image: node
     working_dir: /home/node/app
+    # Mounting the backend code base to docker internal folder 
     volumes:
       - ./backend:/home/node/app
+    # Internal docker port 3000 of container mapped to local port 3002
     ports:
       - "3002:3000"
+     # This container depends on database and cache container. 
+     # The container will be started once these dependency containers are up
     depends_on:
       - database 
       - cache
@@ -48,35 +66,49 @@ services:
       - REDIS_HOST=redis://cache:6379
       - SWAGGER_PORT=3001
       - TZ=Asia/Singapore
+    # Links are to be created since we need to connect to database and cache containers. 
+    # The host uri will be using names provided in the links
     links:
       - cache:cache
       - database:database
+    # command to start the nodejs application
     command: sh -c "npm install && npm run start"
 
+  # For nodejs static file server container (UI)
   ui_server:
     container_name: medium_ui_server
     image: node
     working_dir: /home/node/app
+    # Internal docker port 4000 of container mapped to local port 3002
     ports: 
-      - "3003:3000"
+      - "3003:4000"
+    # Mounting the backend code base to docker internal folder 
     volumes:
       - ./client:/home/node/app
+    # The container depends on backend servers
+    # The container will be started once these dependency containers are up
     depends_on: 
       - backend_server_1
       - backend_server_2
+    # command to start the nodejs application
     command: sh -c "npm install && npm run start"
   
+  # For nginx server container
   proxy_server:
     container_name: medium_proxy_server
     image: nginx
+    # mount nginx settings
     volumes:
       - ./settings/nginx.conf:/etc/nginx/nginx.conf:ro
+    # Internal docker port 80 of container mapped to local port 80 
     ports:
       - "80:80"
+    # container dependencies
     depends_on: 
       - backend_server_1
       - backend_server_2
       - ui_server
+    # links to be used in nginx configuration
     links:
       - backend_server_1:backend_server_1
       - backend_server_2:backend_server_2

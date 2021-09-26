@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+    <head>
+        <title>User information</title>
+    </head>
+    <body>
+        <table id="usertable" style="border: 1px solid black;">
+            <tr>
+                <th>Name</th>
+                <th>Country</th>
+            </tr>
+        </table>
+        <script type="text/javascript">
+            // making ajax api call for getting user information 
+            var xmlhttp = new XMLHttpRequest();
+            // url used is load balanced route
+            var url = "http://localhost/api/user";
+            xmlhttp.onreadystatechange = function() 
+            {
+                if (this.readyState == 4 && this.status == 200) 
+                {
+                    let users = JSON.parse(this.responseText);
+                    let user_table = document.getElementById("usertable");
+                    for(let i = 0; i < users.length; i++)
+                    {
+                        let user_row = user_table.insertRow(i + 1);
+                        let user_name_cell = user_row.insertCell(0);
+                        let user_country_cell = user_row.insertCell(1);
+                        user_name_cell.innerHTML = users[i]['name'];
+                        user_country_cell.innerHTML = users[i]['country'];
+                    }
+                }
+            };
+            xmlhttp.open("GET", url, true);
+            xmlhttp.send();
+        </script>
+    </body>
+</html>
